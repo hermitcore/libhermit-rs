@@ -14,10 +14,10 @@
 .align 16
 _start:
 	// initialize stack pointer
-	mov rax, 0x7ff0
-	add rax, [rdi+0x38]
-	mov rsp, rax
-	mov rbp, rsp
+	mov $0x7ff0,%rax
+	add 0x38(%rdi),%rax
+	mov %rax, %rsp
+	mov %rsp, %rbp
 
 	call pre_init
 
@@ -26,7 +26,7 @@ l1:
 
 .align 16
 task_start:
-	mov rsp, rdx
+	mov %rdx, %rsp
 	sti
 	jmp task_entry
 	jmp l1
