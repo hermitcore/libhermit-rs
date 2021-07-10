@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["get_madt",""],["init",""],["poweroff",""]],"struct":[["AcpiTable","A convenience structure to work with an ACPI table. Maps a single table to memory and frees the memory when a variable of this structure goes out of scope."]]});

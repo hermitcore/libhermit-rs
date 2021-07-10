@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["FileError",""],["SeekWhence",""]],"static":[["FILESYSTEM",""]],"struct":[["FilePerms",""],["Filesystem",""]],"trait":[["PosixFile",""],["PosixFileSystem",""]]});

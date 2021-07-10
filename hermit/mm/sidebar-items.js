@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["init",""],["init_page_tables",""]],"mod":[["paging",""],["physicalmem",""],["virtualmem",""]],"struct":[["PhysAddr","A wrapper for a physical address."],["VirtAddr","A wrapper for a virtual address."]]});

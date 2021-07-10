@@ -1,0 +1,301 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/errno.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>errno.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../hermit/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button">?</button>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<span id="2">  2</span>
+<span id="3">  3</span>
+<span id="4">  4</span>
+<span id="5">  5</span>
+<span id="6">  6</span>
+<span id="7">  7</span>
+<span id="8">  8</span>
+<span id="9">  9</span>
+<span id="10"> 10</span>
+<span id="11"> 11</span>
+<span id="12"> 12</span>
+<span id="13"> 13</span>
+<span id="14"> 14</span>
+<span id="15"> 15</span>
+<span id="16"> 16</span>
+<span id="17"> 17</span>
+<span id="18"> 18</span>
+<span id="19"> 19</span>
+<span id="20"> 20</span>
+<span id="21"> 21</span>
+<span id="22"> 22</span>
+<span id="23"> 23</span>
+<span id="24"> 24</span>
+<span id="25"> 25</span>
+<span id="26"> 26</span>
+<span id="27"> 27</span>
+<span id="28"> 28</span>
+<span id="29"> 29</span>
+<span id="30"> 30</span>
+<span id="31"> 31</span>
+<span id="32"> 32</span>
+<span id="33"> 33</span>
+<span id="34"> 34</span>
+<span id="35"> 35</span>
+<span id="36"> 36</span>
+<span id="37"> 37</span>
+<span id="38"> 38</span>
+<span id="39"> 39</span>
+<span id="40"> 40</span>
+<span id="41"> 41</span>
+<span id="42"> 42</span>
+<span id="43"> 43</span>
+<span id="44"> 44</span>
+<span id="45"> 45</span>
+<span id="46"> 46</span>
+<span id="47"> 47</span>
+<span id="48"> 48</span>
+<span id="49"> 49</span>
+<span id="50"> 50</span>
+<span id="51"> 51</span>
+<span id="52"> 52</span>
+<span id="53"> 53</span>
+<span id="54"> 54</span>
+<span id="55"> 55</span>
+<span id="56"> 56</span>
+<span id="57"> 57</span>
+<span id="58"> 58</span>
+<span id="59"> 59</span>
+<span id="60"> 60</span>
+<span id="61"> 61</span>
+<span id="62"> 62</span>
+<span id="63"> 63</span>
+<span id="64"> 64</span>
+<span id="65"> 65</span>
+<span id="66"> 66</span>
+<span id="67"> 67</span>
+<span id="68"> 68</span>
+<span id="69"> 69</span>
+<span id="70"> 70</span>
+<span id="71"> 71</span>
+<span id="72"> 72</span>
+<span id="73"> 73</span>
+<span id="74"> 74</span>
+<span id="75"> 75</span>
+<span id="76"> 76</span>
+<span id="77"> 77</span>
+<span id="78"> 78</span>
+<span id="79"> 79</span>
+<span id="80"> 80</span>
+<span id="81"> 81</span>
+<span id="82"> 82</span>
+<span id="83"> 83</span>
+<span id="84"> 84</span>
+<span id="85"> 85</span>
+<span id="86"> 86</span>
+<span id="87"> 87</span>
+<span id="88"> 88</span>
+<span id="89"> 89</span>
+<span id="90"> 90</span>
+<span id="91"> 91</span>
+<span id="92"> 92</span>
+<span id="93"> 93</span>
+<span id="94"> 94</span>
+<span id="95"> 95</span>
+<span id="96"> 96</span>
+<span id="97"> 97</span>
+<span id="98"> 98</span>
+<span id="99"> 99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+</pre><pre class="rust">
+<span class="comment">// Copyright (c) 2018 Stefan Lankes, RWTH Aachen University</span>
+<span class="comment">//                    Colin Finck, RWTH Aachen University</span>
+<span class="comment">//</span>
+<span class="comment">// Licensed under the Apache License, Version 2.0, &lt;LICENSE-APACHE or</span>
+<span class="comment">// http://apache.org/licenses/LICENSE-2.0&gt; or the MIT license &lt;LICENSE-MIT or</span>
+<span class="comment">// http://opensource.org/licenses/MIT&gt;, at your option. This file may not be</span>
+<span class="comment">// copied, modified, or distributed except according to those terms.</span>
+
+<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EPERM</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">1</span>; <span class="comment">/* Operation not permitted */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOENT</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">2</span>; <span class="comment">/* No such file or directory */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ESRCH</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">3</span>; <span class="comment">/* No such process */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EINTR</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">4</span>; <span class="comment">/* Interrupted system call */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EIO</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">5</span>; <span class="comment">/* I/O error */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENXIO</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">6</span>; <span class="comment">/* No such device or address */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">E2BIG</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">7</span>; <span class="comment">/* Argument list too long */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOEXEC</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">8</span>; <span class="comment">/* Exec format error */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EBADF</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">9</span>; <span class="comment">/* Bad file number */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ECHILD</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">10</span>; <span class="comment">/* No child processes */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EAGAIN</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">11</span>; <span class="comment">/* Try again */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOMEM</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">12</span>; <span class="comment">/* Out of memory */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EACCES</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">13</span>; <span class="comment">/* Permission denied */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EFAULT</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">14</span>; <span class="comment">/* Bad address */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOTBLK</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">15</span>; <span class="comment">/* Block device required */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EBUSY</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">16</span>; <span class="comment">/* Device or resource busy */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EEXIST</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">17</span>; <span class="comment">/* File exists */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXDEV</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">18</span>; <span class="comment">/* Cross-device link */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENODEV</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">19</span>; <span class="comment">/* No such device */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOTDIR</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">20</span>; <span class="comment">/* Not a directory */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EISDIR</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">21</span>; <span class="comment">/* Is a directory */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EINVAL</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">22</span>; <span class="comment">/* Invalid argument */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENFILE</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">23</span>; <span class="comment">/* File table overflow */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EMFILE</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">24</span>; <span class="comment">/* Too many open files */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOTTY</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">25</span>; <span class="comment">/* Not a typewriter */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ETXTBSY</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">26</span>; <span class="comment">/* Text file busy */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EFBIG</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">27</span>; <span class="comment">/* File too large */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOSPC</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">28</span>; <span class="comment">/* No space left on device */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ESPIPE</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">29</span>; <span class="comment">/* Illegal seek */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EROFS</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">30</span>; <span class="comment">/* Read-only file system */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EMLINK</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">31</span>; <span class="comment">/* Too many links */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EPIPE</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">32</span>; <span class="comment">/* Broken pipe */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EDOM</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">33</span>; <span class="comment">/* Math argument out of domain of func */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ERANGE</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">34</span>; <span class="comment">/* Math result not representable */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EDEADLK</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">35</span>; <span class="comment">/* Resource deadlock would occur */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENAMETOOLONG</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">36</span>; <span class="comment">/* File name too long */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOLCK</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">37</span>; <span class="comment">/* No record locks available */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOSYS</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">38</span>; <span class="comment">/* Function not implemented */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOTEMPTY</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">39</span>; <span class="comment">/* Directory not empty */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ELOOP</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">40</span>; <span class="comment">/* Too many symbolic links encountered */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EWOULDBLOCK</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">EAGAIN</span>; <span class="comment">/* Operation would block */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOMSG</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">42</span>; <span class="comment">/* No message of desired type */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EIDRM</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">43</span>; <span class="comment">/* Identifier removed */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ECHRNG</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">44</span>; <span class="comment">/* Channel number out of range */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EL2NSYNC</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">45</span>; <span class="comment">/* Level 2 not synchronized */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EL3HLT</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">46</span>; <span class="comment">/* Level 3 halted */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EL3RST</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">47</span>; <span class="comment">/* Level 3 reset */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ELNRNG</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">48</span>; <span class="comment">/* Link number out of range */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EUNATCH</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">49</span>; <span class="comment">/* Protocol driver not attached */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOCSI</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">50</span>; <span class="comment">/* No CSI structure available */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EL2HLT</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">51</span>; <span class="comment">/* Level 2 halted */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EBADE</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">52</span>; <span class="comment">/* Invalid exchange */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EBADR</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">53</span>; <span class="comment">/* Invalid request descriptor */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXFULL</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">54</span>; <span class="comment">/* Exchange full */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOANO</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">55</span>; <span class="comment">/* No anode */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EBADRQC</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">56</span>; <span class="comment">/* Invalid request code */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EBADSLT</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">57</span>; <span class="comment">/* Invalid slot */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EDEADLOCK</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">EDEADLK</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EBFONT</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">59</span>; <span class="comment">/* Bad font file format */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOSTR</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">60</span>; <span class="comment">/* Device not a stream */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENODATA</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">61</span>; <span class="comment">/* No data available */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ETIME</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">62</span>; <span class="comment">/* Timer expired */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOSR</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">63</span>; <span class="comment">/* Out of streams resources */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENONET</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">64</span>; <span class="comment">/* Machine is not on the network */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOPKG</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">65</span>; <span class="comment">/* Package not installed */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EREMOTE</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">66</span>; <span class="comment">/* Object is remote */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOLINK</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">67</span>; <span class="comment">/* Link has been severed */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EADV</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">68</span>; <span class="comment">/* Advertise error */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ESRMNT</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">69</span>; <span class="comment">/* Srmount error */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ECOMM</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">70</span>; <span class="comment">/* Communication error on send */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EPROTO</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">71</span>; <span class="comment">/* Protocol error */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EMULTIHOP</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">72</span>; <span class="comment">/* Multihop attempted */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EDOTDOT</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">73</span>; <span class="comment">/* RFS specific error */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EBADMSG</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">74</span>; <span class="comment">/* Not a data message */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EOVERFLOW</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">75</span>; <span class="comment">/* Value too large for defined data type */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOTUNIQ</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">76</span>; <span class="comment">/* Name not unique on network */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EBADFD</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">77</span>; <span class="comment">/* File descriptor in bad state */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EREMCHG</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">78</span>; <span class="comment">/* Remote address changed */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ELIBACC</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">79</span>; <span class="comment">/* Can not access a needed shared library */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ELIBBAD</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">80</span>; <span class="comment">/* Accessing a corrupted shared library */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ELIBSCN</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">81</span>; <span class="comment">/* .lib section in a.out corrupted */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ELIBMAX</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">82</span>; <span class="comment">/* Attempting to link in too many shared libraries */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ELIBEXEC</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">83</span>; <span class="comment">/* Cannot exec a shared library directly */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EILSEQ</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">84</span>; <span class="comment">/* Illegal byte sequence */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ERESTART</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">85</span>; <span class="comment">/* Interrupted system call should be restarted */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ESTRPIPE</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">86</span>; <span class="comment">/* Streams pipe error */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EUSERS</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">87</span>; <span class="comment">/* Too many users */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOTSOCK</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">88</span>; <span class="comment">/* Socket operation on non-socket */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EDESTADDRREQ</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">89</span>; <span class="comment">/* Destination address required */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EMSGSIZE</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">90</span>; <span class="comment">/* Message too long */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EPROTOTYPE</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">91</span>; <span class="comment">/* Protocol wrong type for socket */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOPROTOOPT</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">92</span>; <span class="comment">/* Protocol not available */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EPROTONOSUPPORT</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">93</span>; <span class="comment">/* Protocol not supported */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ESOCKTNOSUPPORT</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">94</span>; <span class="comment">/* Socket type not supported */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EOPNOTSUPP</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">95</span>; <span class="comment">/* Operation not supported on transport endpoint */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EPFNOSUPPORT</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">96</span>; <span class="comment">/* Protocol family not supported */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EAFNOSUPPORT</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">97</span>; <span class="comment">/* Address family not supported by protocol */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EADDRINUSE</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">98</span>; <span class="comment">/* Address already in use */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EADDRNOTAVAIL</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">99</span>; <span class="comment">/* Cannot assign requested address */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENETDOWN</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">100</span>; <span class="comment">/* Network is down */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENETUNREACH</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">101</span>; <span class="comment">/* Network is unreachable */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENETRESET</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">102</span>; <span class="comment">/* Network dropped connection because of reset */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ECONNABORTED</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">103</span>; <span class="comment">/* Software caused connection abort */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ECONNRESET</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">104</span>; <span class="comment">/* Connection reset by peer */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOBUFS</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">105</span>; <span class="comment">/* No buffer space available */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EISCONN</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">106</span>; <span class="comment">/* Transport endpoint is already connected */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOTCONN</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">107</span>; <span class="comment">/* Transport endpoint is not connected */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ESHUTDOWN</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">108</span>; <span class="comment">/* Cannot send after transport endpoint shutdown */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ETOOMANYREFS</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">109</span>; <span class="comment">/* Too many references: cannot splice */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ETIMEDOUT</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">110</span>; <span class="comment">/* Connection timed out */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ECONNREFUSED</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">111</span>; <span class="comment">/* Connection refused */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EHOSTDOWN</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">112</span>; <span class="comment">/* Host is down */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EHOSTUNREACH</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">113</span>; <span class="comment">/* No route to host */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EALREADY</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">114</span>; <span class="comment">/* Operation already in progress */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EINPROGRESS</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">115</span>; <span class="comment">/* Operation now in progress */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ESTALE</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">116</span>; <span class="comment">/* Stale file handle */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EUCLEAN</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">117</span>; <span class="comment">/* Structure needs cleaning */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOTNAM</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">118</span>; <span class="comment">/* Not a XENIX named type file */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENAVAIL</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">119</span>; <span class="comment">/* No XENIX semaphores available */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EISNAM</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">120</span>; <span class="comment">/* Is a named type file */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EREMOTEIO</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">121</span>; <span class="comment">/* Remote I/O error */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EDQUOT</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">122</span>; <span class="comment">/* Quota exceeded */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOMEDIUM</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">123</span>; <span class="comment">/* No medium found */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EMEDIUMTYPE</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">124</span>; <span class="comment">/* Wrong medium type */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ECANCELED</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">125</span>; <span class="comment">/* Operation Canceled */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOKEY</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">126</span>; <span class="comment">/* Required key not available */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EKEYEXPIRED</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">127</span>; <span class="comment">/* Key has expired */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EKEYREVOKED</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">128</span>; <span class="comment">/* Key has been revoked */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EKEYREJECTED</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">129</span>; <span class="comment">/* Key was rejected by service */</span>
+
+<span class="comment">/* for robust mutexes */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EOWNERDEAD</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">130</span>; <span class="comment">/* Owner died */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOTRECOVERABLE</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">131</span>; <span class="comment">/* State not recoverable */</span>
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ERFKILL</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">132</span>; <span class="comment">/* Operation not possible due to RF-kill */</span>
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EHWPOISON</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">133</span>; <span class="comment">/* Memory page has hardware error */</span>
+</pre></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="hermit" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
+    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

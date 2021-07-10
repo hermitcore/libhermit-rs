@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["allocate",""],["allocate_aligned",""],["deallocate","This function must only be called from mm::deallocate! Otherwise, it may fail due to an empty node pool (POOL.maintain() is called in virtualmem::deallocate)"],["init",""],["print_information",""],["total_memory_size",""]]});

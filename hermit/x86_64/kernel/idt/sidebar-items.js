@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["IDT_ENTRIES","Declare an IDT of 256 entries. Although not all entries are used, the rest exists as a bit of a trap. If any undefined IDT entry is hit, it will cause an “Unhandled Interrupt” exception."]],"fn":[["install",""],["set_gate","Set an entry in the IDT."]]});

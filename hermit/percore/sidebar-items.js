@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["core_id",""],["core_scheduler",""],["get_kernel_stack",""],["increment_irq_counter",""],["init",""],["set_core_scheduler",""],["set_kernel_stack",""]],"static":[["PERCORE",""]],"struct":[["PerCoreInnerVariables",""],["PerCoreVariable",""]],"trait":[["Is32BitVariable",""],["PerCoreVariableMethods",""]],"type":[["PerCoreVariables",""]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["allocate",""],["allocate_aligned",""],["deallocate",""],["init",""],["kernel_heap_end","End of the virtual memory address space reserved for kernel memory. This also marks the start of the virtual memory address space reserved for the task heap. In case of pure rust applications, we don’t have a task heap."],["print_information",""]]});
